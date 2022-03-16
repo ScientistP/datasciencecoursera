@@ -1,0 +1,1054 @@
+---
+params:
+  project_issue_key: "Functions"
+  project_name: "Path"
+  report_title: "xx "
+  author: "P P"
+  department: "Data Science"
+  status: "Draft"
+  confidentiality_level: "Internal"
+output:
+  pdf_document:
+    keep_tex: FALSE
+    includes:
+      in_header: in_header.tex
+      before_body: before_body.tex
+    number_sections: TRUE
+---
+
+```{r setup, include=FALSE, purl=FALSE}
+# Build the tex files for rendering/kniting this RMarkdown. Note that if
+# Default chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  tidy = TRUE,
+  include = TRUE,
+  results = 'hide',
+  dev = 'png'
+)
+```
+
+"To understand computations in R, two slogans are helpful: 1. Everything that exists is an object. 2. Everything that happens is a function call."John Chambers, the creator of R
+
+
+# Summary Table
+
+| | |
+| ------------- | -------------|
+| *Project Name* | `r params$project_name` |
+| *Project Sponsor/Owner* | Woodside |
+| *Project Team* ||
+| *Current Status* |  In Progress |
+| *Project Epic* | [`r params$project_issue_key`]() |
+| *GitHub Repo* | [](https://github.com/ | 
+| *Other Links* | [Deployed RShiny App]()
+
+
+
+# R Markdown
+
+
+```{r echo=FALSE}
+
+library(readxl) # read Excel files (if you need to both read and write Excel files use (openxlsm)
+library(tidyverse)
+library(dplyr)
+library(zoo) # mean and sum function
+library(ggplot2)
+library(reshape2)
+library(fst) # library for storing data.frame as compressed binary objects
+library(fs) # library for manipulating paths and interacting with the operating system
+library(here) # find project root directory
+library(data.table)
+library(magrittr)# pipes
+library(lubridate) #library for getting time series aggregation 
+library(tictoc)#library for timing but we don't need it for tsdb or WELdatalake
+library(gridExtra) #library for gridding different plots together
+library(utils)
+library(grid)#library to change the grid captions and titles
+
+```
+Week 1
+Atomic classes: numeric, logical, character, integer, complex
+```{r}
+y <- vector ("numeric", length=3) #[1] 0 0 0
+x <- 0:6
+class(x) b#integer
+as.numeric(x) # coerce it explicitly
+as.logical(x) # FALSE TRUE TRUE TRUE ...
+
+# coercion doesn't alwats work and you can get NA values:
+x <- c("a", "b", "c")
+as.numeric(x) # NA NA NA
+as.complex(x)
+```
+Data Types
+
+
+Missing Values
+1)NA: NAs is that NA is not really a value, but just a placeholder for a quantity
+that is not available.
+Missing Values
+2) NaN: Not a number such as: 0/0, Inf- Inf
+```{r}
+#1 matrix
+m <- matrix (1:6, nrow=2, ncol=3) #method 1
+m<-1:6 #method 2
+dim(m) <-c(2, 3)
+x <- 1:3 #method 3
+y <- 10:12
+cbind (x,y) 
+
+#2 Factors 
+#a special type of vector to represent categorical data: ordered or non-ordered
+# female and Male. Cathegory 1 and Cathegory 2. it's really an integer vector with the attribute, the levels attribute of no and yes.
+
+x <- factor(c("yes", "yes", "no", "yes", "yes"))
+levels(x) # "yes" and "no" so two levels
+table(x) #  no yes 
+          # 1   4 
+# Unclass will kind of bring it down to an integer vector, and you can see that underlying. The factors represent as 22121 so, yes, it's coded as two and no, it's coded as one
+unclass(x) # 2  2 1 2 2; attr(,"levels"); [1] "no"  "yes
+
+# the base line are ordered according to alphabetical order unless you define it:
+x <- factor(c("yes", "yes", "no", "yes", "yes"), 
+            levels=c("yes","no"))
+
+#3 Missing Values
+x <- c(1,2,NA, 10, 3)
+is.na(x) # missing character, integer, numeric, NAN and etc.
+x <- c(1,2,NaN, NA, 3)
+is.nan(x)
+
+# 4 Lists
+x <- list (1, "a", TRUE, 1+4i)
+x<- list(a=1, b=2, c=3)
+
+# 5 Data Frames
+# stores different types of objects at once
+x<- data.frame(foo=1:4, bar=c(T,T,F,F)) #1st method, has no names
+
+x<-1:3 #method 2: five names to each coloumn
+names(x) <- c("foo", "bar", "nrof")
+
+m<- matrix (1:4, nrow=2, ncol=2) #metod 3: give names to coloumns and rows
+dimnames(m) <-list(c("a","b"), c("c", "d"))
+
+
+nrow(x)
+ncol(x)
+
+#convert into matrix
+data.matrix(x)
+
+```
+Reading  Data
+
+#for tabular data
+read.table("foo.txt") #for small sized data, the separator is space
+read.csv() # same as read.table except the separator is space
+
+#text file
+readLines()
+
+#read in R codes file
+source() # inverse of dump
+dget() #  (inverse of dput)
+
+load() # saved workspaces
+unseialize() # reading single R objects in binary form
+
+
+Writing Data
+
+write.table()
+writeLines()
+dump()
+dput()
+save()
+serialize()
+
+# Reading Large Tables
+if larger than your RAM
+comment.char #comment lines in your file
+
+colClasses #instead of read.table. this is faster. Specify the coloum class
+colClass="numeric"
+
+```{r}
+initial <-read.table("datatable.txt", nrows=100) #read first hundred rows
+classes <- sapply(initial, class) #class tells you the class of each coloumn
+tabAll <-read.table("datatable.txt", colClass=classes) #read the entire data set after by specifying the call classes argument
+
+y <-data.frame(a=1, b="a")
+
+dput(y, file="Y.R")# craeted a list and class of the data and saves it into a new file
+new.y <- dget ("y.R") #reconstructs the object from before. So it reconstructs an R object
+
+dump(c("x", "y"), file="data.R") # like dget on multiple ojects x and y. 
+rm(x,y)
+source("data.R") # read thgose ojects x and y back
+
+```
+Connection Interfaces
+```{r}
+con <- file("foo.txt", "r")
+data <- read.csv(con)  #or can write  data<- read.csv("foo.txt")
+close(con)
+
+#But connection is useful if we want o rea a section of the file
+con <- gzfile("word.gz")
+x <-ReadLines(con, 10)  #first 10 lines.  You can also use writelines() to write each element at a time to a text file
+x
+
+con <- url("https://www.jhsph.edu", "r")
+
+```
+SUB-SETTING
+[
+[[  you can use the double bracket operator to a list, where the index itself was computed. Can take an integer sequence in as, rather than a single number,
+$  You have to type out the name of the element. But sometimes the name of the element is actually the result of some computation. So for example here I've got a list with three elements, foo, bar, and baz. And then I create a variable called name which is actually the string foo. So if I use the double bracket operator on this variable here.
+```{r}
+x <- c("a","b", "c","d","a")
+x[1]
+x[1:4]
+
+x[x> "a"]
+
+u <-x > "a"
+x[u]
+
+#LIST
+x <- list(foo=1:4, bar=0.6)
+x[1] # a list that has element called foo, which is a sequence 1 through 4
+x[[1]] #just a sequence, 1 through 4
+x["bar"]
+x[["bar"]]
+
+#Multiple elements from a list
+x <- list(foo=1:4, bar=0.6, baz="hello")
+x[c(1,3)]
+x[1]
+x[[1]]
+name <- "foo"
+x[[name]] #same as x[[1]]
+x$foo #same as x[[1]]
+
+#[[ can take an integer sequence in as, rather than a single number,
+x <- list(a=list(10,12,14), b=c(3.14,2.81))
+x[[c(1,3)]] #14. the first element of the list, and then choose its 3rd element
+
+#MATRIX
+x <- matrix(1:6, 2, 3)
+x[1,2]
+x[1]
+
+#when a single element of a matrix is retrieved, is returned to vector of length one, rather than a one by one matrix. This can be turned off
+x[1,2,drop=FALSE]# 3.  gives 1st line 2nd coloum element. preseves the dimention of the object
+
+
+x[1,] # it is a vector with the elements
+x[1,,drop=FALSE]# you get a one by three matrix
+
+
+#PARTIAL MATCHING
+
+x <- list(aardvark=1:5)
+x$a #arrdvarak is a difficult name so I use a shorthand a
+x[["a"]] # looks for the exact match whcih is NULL here
+x[["a", exact=FALSE]] # this now beahves like th $ 
+
+# REMOVING NA
+x <- c(1,2,NA,4,NA,5)
+bad <- is.na(x)
+x[!bad]
+
+
+## multiple object, NA
+x <- c(1,2,NA,4,NA,5)
+y <- c("a", "b",NA,"d",NA,"f")
+good <-complete.cases(x,y)
+x[good]
+y[good]
+
+
+#data frames
+# airquality[1:6,]
+#good <- complete.cases[airqualities]
+
+```
+Vectorised operations
+it easy to use, on the command line. Operations in parrallel 
+```{r}
+x<- 1:4
+y <- 6:9
+x+y  # (x1+y1)+(x2,y2)+...
+x>2
+x==8
+x*y
+x/y
+
+#Metric
+x <- matrix(1:4, 2, 2)
+y <- matrix(rep(10,4),2,2)
+x*y
+x/y #deviding element
+
+x %*% Y #true matrix multiplication
+
+
+```
+# useful commands
+## Wk 1 Workspace and Files
+It is often helpful to save the settings that you had before you began an analysis and then go back to them at the end. This trick is often used
+| within functions;
+```{r}
+?`:` #view the documentation for a symbol 
+old.dir <- getwd() #Assign the value of the current working directory to a variable called "old.dir"
+dir.create("testdir")
+setwd("testdir") #Set your working directory to "testdir"
+file.create("mytest.R") #create a file
+file.exists("mytest.R") #Check to see if "mytest.R" exists in the working director
+file.info("mytest.R") #Access information about the file "mytest.R"
+file.rename("mytest.R", "mytest2.R") #Change the name of the file "mytest.R" to "mytest2.R"
+file.copy("mytest2.R", "mytest3.R") #Make a copy of "mytest2.R" called "mytest3.R"
+file.path("mytest3.R") #Provide the relative path to the file "mytest3.R"
+file.path("folder1", "folder2") # You can use file.path to construct file and directory paths that are independent of the operating system your R code is running on. Pass 'folder1' and 'folder2' as arguments to file.path to make a platform-independent pathname.
+dir.create (file.path('testdir2', 'testdir3'), recursive = TRUE) #In order to create nested directories,'recursive' must be set to TRUE. Create a directory in the current working directory called "testdir2" and a subdirectory for it called "testdir3"
+setwd(old.dir) #Go back to your original working directory
+```
+
+# swirl lesson 3
+## sequence and numbers
+```{r}
+pi:10 #create a sequence of real numbers
+seq(pi, 10)
+seq(0, 10, by=0.5) #increment
+seq_len(10)
+seq_along(10) #	take the length from the length of this argument.
+
+my_seq <- seq(5, 10, length=30) # sequence of 30 numbers between 5 and 10
+length(my_seq) #To confirm that my_seq has length 30
+ 1: length(my_seq) #create a new vector (1, 2, 3, ...) that is the same length as my_seq, First method
+seq(along.with = my_seq) # second method
+seq_along(my_seq) #third method
+rep(0, times = 40) #creating a vector that contains 40 zeros. rep means 'replicate'
+rep(c(0,1,2), times = 10) #vector to contain 10 repetitions of the vector (0, 1, 2)
+rep(c(0, 1, 2), each = 10) #we want our vector to contain 10 zeros, then 10 ones, then 10 twos
+```
+```{r}
+
+my_seq <- seq(5, 10, length=30)%>%
+  length()
+seq(5, 10, length=30) #30 random numbers between 5 and 10
+
+seq(1,20, by=0.5)
+1:length(my_seq)
+
+rep(0, times = 40) #replicaTE 40 ZERO VEVTOR
+rep(c(0, 1, 2), times = 10) #contain 10 repetitions of the vector 
+rep(c(0, 1, 2), each = 10) #vector to contain 10 zeros, then 10 ones, then 10 twos. We can do
+#this with the `each` argument
+```
+# swirl lesson 4
+## Vectors: atomic vectors and lists
+atomic vectors include numerical, logical, character, integer, and complex.
+Logical operators: >, <=, ==,  A | B, A & B, !A
+
+```{r}
+num_vect <- c(0.5, 55, -10, 6)
+tf <-num_vect < 1
+num_vect >= 6
+
+my_char <- c("My", "name", "is")
+paste(my_char, collapse = " ") #join the elements of my_char together into one continuous character
+my_name <- c(my_char, "P")#paste(my_char, collapse = " ")#add (or 'concatenate') your name to the end of my_char
+paste(my_name, collapse = " ")
+paste("Hello", "world!", sep = " ") #sep` argument tells R that we want to separate the joined elements with a single space.
+paste(1:3, c("X", "Y", "Z"), sep = "") #join the integer vector 1:3 with the character vector c("X", "Y", "Z")
+paste(LETTERS, 1:4, sep = "-")  #Vector recycling!, different lengths. he numeric vector 1:4 gets 'coerced' into a character vector by the paste() function
+```
+
+```{r}
+#create a vector containing 1000 draws from a standard normal distribution with 
+y <- rnorm(1000)
+
+# vector containing 1000 NAs
+z <- rep(NA, 1000)
+
+#select 100 elements at random from these 2000 values (combining y and z) such that we don't know how many NAs we'll wind up with or what positions they'll occupy in our final vector
+my_data <-sample(c(y, z), 100)
+
+#tells us whether each element of a vector is NA. Can't usemy_data == NA to check NA positions
+my_na <-is.na(my_data)
+
+#R represents TRUE as the number 1 and FALSE as the number 0. Therefore, if we take the sum of a bunch of TRUEs and FALSEs, we get the total number of TRUEs.
+sum(my_na)
+
+```
+#Swirl lesson5
+Missing Values
+NA is not really a value. So using logical on them will always return  NA. TRUE as the number 1 and FALSE as the number 0
+```{r}
+#NA: not available
+x <-c(44, NA, 5, NA)
+y <- rnorm(1000)#create a vector containing 1000 draws from a standard normal distribution 
+z <- rep(NA,1000) #create a vector containing 1000 NAs
+my_data <- sample(c(y, z), 100) #select 100 elements at random from these 2000 values (combining y and z) such that we don't know how many NAs we'll wind
+my_na <-is.na(my_data)#where our NAs are located in our data
+sum(my_na) # number of NAs
+
+#NaN: not a number e.g. 0/0, Inf - Inf
+
+```
+#Swirl lesson 6
+Substituting Vectors
+Index vectors come in four different flavors -- logical vectors, vectors of positive integers, vectors of negative integers, and vectors of character strings
+You should always make sure that what you are asking for is within the bounds of the vector you're working with. Otherwise R will give you non-sense answers
+```{r}
+#Logical vector, positive and negative vectors.
+#x already created contains a random ordering of 20 numbers (from a standard normal distribution) and 20 NAs
+x[1:10]
+x[x>0] #Since NA is not a value, but rather a placeholder for an unknown quantity, the expression NA > 0 evaluates to NA. It gives NA for all negative, zero and NA values
+x[!is.na(x) & x > 0] #request only values of x that are both non-missing AND greater than zero
+x[c(3, 5, 7)]
+
+y <-x[!is.na(x)] #shows non-missing values
+y[y > 0] #A vector of all the positive elements of y
+
+
+x[c(-2, -10)] # all elements of x EXCEPT for the 2nd and 10 elements
+x[-c(2, 10)] #same as above
+
+#'named' elements
+vect <- c(foo = 11, bar = 2, norf = NA)
+names(vect) # gives the name of each coloumn
+
+vect2 <-c(11, 2, NA) # un-named vector
+names(vect2) <- c("foo", "bar", "norf") # add the names later
+identical(vect, vect2) # they are the same
+vect["bar"] #gives the second element of vect
+vect[c("foo", "bar")] #specify a vector of names
+```
+
+
+
+#Swil Lesson 7
+Matrices and Data Frame
+'rectangular' data types
+1)Matrix
+2)df: 
+matrices can only contain a single class of data, while data frames can consist of many different classes of data. a matrix is simply an atomic vector with a dimension attribute
+
+```{r}
+my_vector <- 1:20
+length(my_vector) #correct answer!
+dim(my_vector) #Null, my_vector is a vector, it doesn't have a `dim` attribute (so it's just NULL)
+dim(my_vector) <- c(4, 5) #define an attribute to my_vector
+attributes(my_vector)#to see dim
+
+my_matrix2 <- matrix(1:20, nrow=4, ncol=5)
+patients <- c("Bill", "Gina", "Kelly", "Sean")
+cbind(patients, my_matrix) #'combine columns.  R was forced to 'coerce' the numbers to characters, hence the double quotes. so numbers are just charactors now :(
+my_data <- data.frame(patients, my_matrix) #include the names of our patients in the table without destroying the integrity of our numeric data
+cnames <- c("patient", "age", "weight", "bp", "rating", "test") #create a character vector called cnames that contains the following values (in order) -- "patient", "age", "weight", "bp", "rating", "test".
+colnames(my_data) <- cnames #set the `colnames` attribute for our data frame
+```
+Subsetting Vectors 
+```{r}
+my_vector <- 1:20
+#view the first ten elements of x
+x <- c[1, 2, NA, 5, 7, NA, 51, 2]
+x[1:5] #subset first 5 elements
+
+
+x[is.na(x)] # A vector of all NAs
+y <- x[!is.na(x)] #create a vector called y that contains all of the non-NA values from x
+
+#y > 0 will give us a vector of logical values the same length as y, with TRUEs corresponding to values of y that are greater than zero and FALSEs for =<0 e.e. T F T T and etc
+y[y > 0] # only the non-NA values
+
+x[!is.na(x) & x > 0] # same as above
+
+x[c(3, 5, 7)] #subset the 3rd, 5th, and 7th elements of x
+
+x[0]  # rubbish answer numeric(0)
+x[30000]  # NA
+x[c(-2, -10)]  #ll elements of x EXCEPT the 2nd and 10th
+x[-c(2,10)] #same as above
+
+vect <- c(foo = 11, bar = 2, norf = NA)
+#same as
+vect2 <- c(11,2,NA)
+names(vect2) <- c("foo", "bar", "norf")
+identical(vect, vect2) #checks if vect and vect2 are the same
+vect[c("foo", "bar")] #want the element named "bar"
+```
+
+
+#WEEK 2
+--
+Control Structures: Executing Loop
+if, else; for: for a fixed number of times, while:  while a condition applies, repeat: an infinite loop, break: the loop; next: skip an interaction; return: exit
+There is also apply functions
+
+IF
+```{r}
+if (x>3){
+  y <-10
+}else {
+  y <-0
+}
+
+if (x>3){
+  10
+}else {
+  0
+}
+
+```
+
+FOR
+```{r}
+for(i in 1:10){
+  print(i)
+}
+
+###
+x <- c("a", "b","c", "d")
+
+for(i in 1:4){
+  print(x[i])
+}
+
+for(i in 1:4) print(x[i]) # same as above
+
+for(i in seq_along(x)){
+  print(x[i])
+}
+
+for(letter in x){
+  print(letter)
+}
+
+### nested for loops
+
+x<- matrix (1:6, 2,3)
+
+for (i in seq_len(nrow(x))){
+  for (j in seq_len(ncol(x))) {
+    print(x[i,j])
+      }
+}
+
+```
+WHILE: Be careful that the loop finishes
+```{r}
+count <-0
+while (count <10){
+  print(count)
+  count<- count +1
+}
+
+
+#TESTING multiple condition using &&
+# it is hard to tell when the loop will finish. It is like generating a random walk.
+z <- 5
+while (z >=3 && z <=10){
+  print(z)
+  coin <- rbinom(1,1,0.5) #flip a fair coin
+  if(coin==1) {
+    z <- z+1
+  }
+  else{
+    z <z-1
+  }
+}
+
+
+```
+
+Repeat, 
+Used for optimisation algorithms when you want to maximise a function. This is a bit dengerous as the loop may not converge! so better to put  a hard limit (usng a for loo) on the number of iterations
+
+```{r}
+x0 <- 1
+tol <- 1e-8 #tolerance
+
+#repeat generates an infinite loop. The only way out is exit.
+repeat{
+  x1 <-computeEstimate()  # this is not a real function!!!
+  if(abs(x1-x0)<tol){
+    break
+  }else {
+    x0 <-x1
+  }
+  
+}
+```
+Next, Return
+```{r}
+for( i in 1:100){
+  if(i<=20){
+    next ##skip
+  }
+  #do something
+}
+```
+
+
+Break
+
+
+
+--
+Swirl Lesson 8
+Logic
+Functions
+Dates and Times
+--
+Logic: boolean values: They are TRUE and FALSE
+
+Logical
+the `&` operator to evaluate AND across a vector. The `&&` version of AND only evaluates the first member of a vector. 
+All AND operators are evaluated before OR operators
+Order: 1) && 2) |
+
+The any() function will return TRUE if one or more of the elements in the logical vector is TRUE. The all() function will return TRUE if every element in the logical vector is TRUE.
+```{r}
+TRUE==TRUE
+(FALSE == TRUE) == FALSE
+5 != 7
+!(5==7)
+!FALSE3
+(TRUE != FALSE) == !(6 == 7)
+TRUE & TRUE  #TRUE
+FALSE & FALSE  #FALSE
+TRUE & c(TRUE, FALSE, FALSE)
+TRUE && c(TRUE, FALSE, FALSE) #In this case, the left operand is only evaluated with the first member of the right operand. The rest of the elements in the vector aren't evaluated at all in this expression.
+
+TRUE | c(TRUE, FALSE, FALSE)   # | means OR: TRUE TRUE TRUE
+TRUE || c(TRUE, FALSE, FALSE)  # || means OR: TRUE
+5 > 8 || 6 != 8 && 4 > 3.9  #First the left and right operands of the AND operator are evaluated. 6 is not equal 8, 4 is greater than 3.9, therefore both operands are TRUE so the resulting expression `TRUE && TRUE` evaluates to TRUE. Then the left operand of the OR operator is evaluated: 5 is not greater than 8 so the entire expression is reduced to FALSE || TRUE. Since the right operand of this expression is TRUE the entire expression evaluates to TRUE.
+
+
+isTRUE(6 > 4)  #TRUE. takes one argument
+identical('twins', 'twins') #T
+identical(5 > 4, 3 < 3.1) #T
+
+#exclusive OR. If one argument evaluates to TRUE and one argument evaluates to FALSE, then this function will return TRUE, otherwise it will return FALSE. 
+xor(5 == 6, !FALSE)  #T
+xor(4 >= 9, 8 != 8.0) #F
+
+ints <- sample(10) #random sampling of integers from 1 to 10 without replacement: 4  5  1 10  8  3  6  7  2  9
+which(ints > 7) #find the indices of ints that are greater than 7
+all(ints>0) #T
+any(ints<0) #F  return TRUE if one or more of the elements in the logical vector is TRUE.
+all(c(TRUE, FALSE, TRUE)) #? return TRUE if every element in the logical vector is TRUE
+all(ints > 0) #to see if all of the elements of ints are greater than zero.
+
+
+```
+
+
+FUNCTIONS
+Inputs to functions are often called arguments. The last R expression to be evaluated in a function will become the return value of that function.
+If you want to see the source code for any function, just type the function name without any arguments or parentheses.
+args(remainder).
+
+
+Most of the time I want to use increment function to increase the value of a number by one. This function will take two arguments: "number" and "by" where "number" is the digit I want to increment and "by" is the amount I want to increment "number" by. I've written the function below. 
+
+increment <- function(number, by = 1){
+number + by
+}
+
+If you take a look in between the parentheses you can see that I've set "by" equal to 1. This means that the "by" argument will have the default
+value of 1. I can now use the increment function without providing a value for "by": 
+increment(5) will evaluate to 6. However if I want to provide a value for the "by" argument I still can! The
+expression: increment(5, 2) will evaluate to 7. 
+```{r}
+
+mean(c(2, 4, 5)) #c(2, 4, 5) are the arguments
+args(mean) #shows arguments to the function mean
+
+boring_function <- function(x){
+  x
+}
+
+boring_function("Hello Hello")
+
+#input can be my_mean(c(4,5,10))
+my_mean <- function(my_vector) {
+  sum(my_vector)/length(my_vector)
+}
+
+######## 2 writing a function with default argument ###################
+increment <- function(number, by = 1){
+  number + by
+}
+
+increment(1,3) #4
+increment(5) # 6
+
+
+#You're going to write a function called "remainder." remainder() will take two arguments: "num" and "divisor". remainder(5)> 1, remainder(11,5) > 1 , remainder(divisor=11, num=5) > 5
+remainder <- function(num, divisor=2) {
+  num %% divisor
+}
+args(remainder)
+remainder(5)
+remainder(11,5)
+remainder(num = 11, divisor = 5)
+
+
+########### pass functions as arguments #############
+evaluate <- function(func, dat){
+  func(dat)
+}
+evaluate(func=sd, dat=c(1.4, 3.6, 7.9, 8.8) )
+
+########## anonymous functions  #########################
+#pass a function as an argument without first defining the passed function 
+#use already existing evaluate function: examples
+evaluate(function(x){x+1}, 6) #7  
+evaluate(function(x){x[1]}, dat=c(8, 4, 0))  # return the first element of the vector c(8, 4, 0)
+evaluate(function(x){x[length(x)]}, dat=c(8, 4, 0)) #return the last element of the vector c(8, 4, 0)
+
+```
+PASTE
+
+paste converts its arguments (via as.character) to character strings, and concatenates them (separating them by the string given by sep. If the arguments are vectors, they are concatenated term-by-term to give a character vector result. Vector arguments are recycled as needed, with zero-length arguments being recycled to "" only if recycle0 is not true or collapse is not NULL.
+
+argument of paste() is `...` which is referred to as an ellipsis:  allows an indefinite number of arguments to be passed into a function.
+The ellipses can be used to pass on arguments to other functions that are used within the function you're writing. Usually a function that has the
+ellipses as an argument has the ellipses as the last argument.
+
+binary operators: +, -, *, and / as they take two inputs, an input from the left and an input from the right.
+
+```{r}
+ellipses_func(arg1, arg2 = TRUE, ...)   #arg1 has no default value, so a value must be provided for arg1. arg2 has a default value, and other arguments can come after arg2 depending on how they're defined in the ellipses_func()
+paste (..., sep = " ", collapse = NULL) #R rule: all arguments after an ellipses must have default values
+
+simon_says <- function(...){
+  paste("Simon says:", ...)
+}
+
+
+telegram <- function(...){
+  paste("START", ..., "STOP")
+}
+telegram("good morning")
+
+######### "unpack" arguments from an ellipses ###########
+# add two explicitly named arguments called alpha and beta.
+add_alpha_and_beta <- function(...){
+  args <- list(...) #capture the ellipsis in a list()
+  
+  #unpack the arguments from the ellipsis, 
+  alpha <- args[["alpha"]] #there are two named arguments within args
+  beta  <- args[["beta"]]
+  alpha + beta 
+}
+add_alpha_and_beta("")
+
+mad_libs <- function(...){
+  # 1 capture the ellipsis inside of a list
+  args <- list(...) # capture the ellipsis inside of a list
+  
+  #2 unpack the arguments from the ellipsis and assign them to variables
+  place <- args[["place"]]
+  adjective <- args[["adjective"]]
+  noun <- args[["noun"]]
+  
+  # 3 pass those variables to paste()
+  paste("News from", place, "today where", adjective, "students took to the streets in protest of the new", noun, "being installed on campus.")
+}
+
+```
+binary operator
+%[whatever]% 
+```{r}
+#define a binary operator that multiplied two numbers and then added one to the product
+"%mult_add_one%" <- function(left, right){ # Notice the quotation marks!
+  left * right + 1
+}
+`4 %mult_add_one% 5` #21
+
+
+"%p%" <- function(left, right){ # Remember to add arguments!
+  paste(left, right)
+}
+
+"Good"%p%"job" # will evaluate to: "Good job!
+"I"%p%"love"%p%"R!" #"I love R!"
+
+```
+
+lapply and sapply 
+
+apply() and sapply(). Both take a list as input, apply a function to each element of the list, then combine and return the result. lapply() always returns a list, whereas sapply() attempts to simplify the resul.See Hadley Wickham's Journal of Statistical Software paper titled 'The Split-Apply-Combine Strategy for Data Analysis'. lapply: list apply
+
+useful functions;dim(), names(), head(), tail() and summary()
+unique() function returns a vector with all duplicate elements removed
+table(df$colname)# number of df for a variable of colname
+
+we can use lapply() to apply the class() function to each column of the flags dataset
+The lapply() function takes a list as input, applies a function to each element of the list, then returns a list of the same length as the original one.
+
+
+lists are most helpful for storing multiple classes of data. 
+Sapply (simplify apply): If the result is a list where every element is of length one, then sapply() returns a vector. If the result is a list where every element is a vector of the same length (> 1), sapply() returns a matrix.If sapply() can't figure things out, then it just returns a list, no different from what lapply() would give you
+```{r}
+#dataset flags is a dataframe. class(flags) just gives us dataframe which is not useful
+# store the column classes in a character vector 
+
+# head(flags)
+#             name landmass zone area population language religion bars stripes colours red green blue gold white black orange mainhue circles crosses saltires quarters
+# 1    Afghanistan        5    1  648         16       10        2    0       3       5   1     1    0    1     1     1      0   green       0       0        0        0
+# 2        Albania        3    1   29          3        6        6    0       0       3   1     0    0    1     0     1      0     red       0       0        0        0
+# 3        Algeria        4    1 2388         20        8        2    2       0       3   1     1    0    0     1     0      0   green       0       0        0        0
+# 4 American-Samoa        6    3    0          0        1        1    0       0       5   1     0    1    1     1     0      1    blue       0       0        0        0
+# 5        Andorra        3    1    0          0        6        0    3       0       3   1     0    1    1     0     0      0    gold       0       0        0        0
+# 6         Angola        4    2 1247          7       10        5    0       2       3   1     0    0    1     0     1      0     red       0       0        0        0
+#   sunstars crescent triangle icon animate text topleft botright
+# 1        1        0        0    1       0    0   black    green
+# 2        1        0        0    0       1    0     red      red
+# 3        1        1        0    0       0    0   green    white
+# 4        0        0        1    1       1    0    blue      red
+# 5        0        0        0    0       0    0    blue      red
+# 6        1        0        0    1       0    0     red    black
+
+class(flags) #data.frame.  What we really need is to call the class() function on each individual column. We can do it manually through a loop or using sapply and lappy functions.
+
+cls_list <- lapply(flags, class) #step 1: every element returned is a character vector of length one (i.e. "integer" and "vector")
+class(cls_list) #list
+as.character(cls_list) #step 2 
+cls_vect <- sapply(flags, class) #or you can combine steps 1 and 2 by sapply: simplify (hence the 's' in 'sapply')
+
+sum(flags$orange) #total number of countries (in our dataset) with, for example, the color orange on their flag
+#Repeat this operation for each of the colors recorded in the dataset
+flag_colors <- flags[, 11:17] # to extract the columns containing the color
+lapply(flag_colors,sum) # get a list containing the sum of each column of flag_colors. one length
+sapply(flag_colors,sum) # or instead we could have used sapply. the result can be simplified to a vector by calling sapply() instead of lapply()
+sapply(flag_colors, mean) #find the proportion of flags (out of 194) containing each color
+
+flag_shapes <- flags[, 19:23] #number of times a particular shape or design appears on a country's flag
+lapply(flag_shapes,range) #minimum and maximum number of times each shape or design appears.LIST: 
+# $circles
+# [1] 0 4
+# 
+# $crosses
+# [1] 0 2 #and etc...
+shape_mat <- sapply(flag_shapes,range) # INSTEAD the following
+#      circles crosses saltires quarters sunstars
+# [1,]       0       0        0        0        0
+# [2,]       4       2        1        4       50
+
+class(shape_mat) #it is a matrix class. this returns "matrix" "array" 
+
+#an example where sapply() can't figure out how to simplify the result and thus returns a list, no different from lapply()
+unique_vals <- lapply(flags, unique) # the number of unique values for each variable in the flags dataset. It is a list. Sapply does the same thing. The fact that the elements of the unique_vals list are all vectors of *different* length poses a problem for sapply(), since there's no obvious way of simplifying the result.
+
+# $name
+#   [1] "Afghanistan"              "Albania"                  "Algeria"                  "American-Samoa"           "Andorra"                  "Angola"                  
+#   [7] "Anguilla"                 "Antigua-Barbuda"          "Argentina"                "Argentine"                "Australia"                "Austria and etc"
+
+# $landmass
+# [1] 5 3 4 6 1 2
+
+sapply(unique_vals, length)  # BUT Since unique_vals is a list, you can determine the length of each element of unique_vals (i.e. the number of unique values for each variable). and apply length to each element using sapply
+# name   landmass       zone       area population   language   religion       bars    stripes    colours        red      green       blue       gold      white 
+#        194          6          4        136         48         10          8          5         12          8          2          2          2          2          2 
+
+```
+
+
+apply a function that is not yet defined
+```{r}
+
+#'anonymous functions' 
+#we are interested in only the second item from each element of the unique_vals list. 
+#Since each element of the unique_vals list is a vector and we're not aware of any built-in function in R that returns the second element of a vector, we will construct our own function.
+lapply(unique_vals, function(elem) elem[2]) #a list containing the second item from each element of the unique_vals list. Function takes one argument, elem, which is just a 'dummy variable' that takes on the value of each element of unique_vals, in turn.
+# $name
+# [1] "Albania"
+# 
+# $landmass
+# [1] 3
+# 
+# $zone
+# [1] 3
+
+```
+
+vapply() and tapply(), each of which serves a very specific purpose within the Split-Apply-Combine methodology
+
+vapply() 
+1) as a safer alternative to sapply(), which is most helpful when writing your own functions. 
+2) Also can be used to split your data into groups based on the value of some variable, then apply a function to each group.
+
+The unique() function returns a vector of the unique values contained in the object passed to it.
+sapply() tries to 'guess' the correct format of the result, vapply() allows you to specify it explicitly. If the result doesn't match the format you specify,
+vapply() will throw an error, causing the operation to stop. This can prevent significant problems in your code that might be caused by getting unexpected return values
+from sapply(). However, when doing data analysis interactively (at the prompt), sapply() saves you some typing and will often be good enough.
+
+tapply(): split your data up into groups based on the value of some variable, then apply a function to the members of each group.
+
+```{r}
+sapply(flags, unique) # return a list containing one vector of unique values for each column of the flags dataset
+vapply(flags, unique, numeric(1)) #says that you expect each element of the result to be a numeric vector of length 1. Since this is NOT actually the case, YOU get error.
+sapply(flags, class)
+#    name    landmass        zone        area  population    language    religion        bars     stripes     colours         red       green        blue        gold 
+# "character"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer" 
+#       white       black      orange     mainhue     circles     crosses    saltires    quarters    sunstars    crescent    triangle        icon     animate        text 
+#   "integer"   "integer"   "integer" "character"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer" 
+#     topleft    botright 
+# "character" "character" 
+
+vapply(flags, class, character(1)) # The 'character(1)' argument tells R that we expect the class function to return a character vector of length 1 when applied to EACH column of the flags dataset. We get the same result as above.
+
+table(flags$landmass) #how many flags/countries fall into each group from 1 to 6.
+#  1  2  3  4  5  6 
+# 31 17 35 52 39 20 
+
+table(flags$animate) #39 flags contain an animate object (animate = 1) and 155 do not (animate = 0)
+#   0   1 
+# 155  39 
+
+tapply(flags$animate, flags$landmass, mean) #to apply the mean function to the 'animate' variable separately for each of the six landmass groups, thus giving us the proportion of flags containing an animate image WITHIN each landmass group. (landmass = 1) corresponds to North America and contains the highest proportion of flags with an animate image (0.4194).
+
+#         1         2         3         4         5         6 
+# 0.4193548 0.1764706 0.1142857 0.1346154 0.1538462 0.3000000 
+
+
+tapply(flags$population, flags$red, summary) #4 miilion is the median population (in millions) for countries *without* the color red on their flag
+# $`0`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    0.00    3.00   27.63    9.00  684.00 
+# 
+# $`1`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#     0.0     0.0     4.04    22.1    15.0  1008.0 
+
+
+#summary of population values for each of the six landmasses.56 million is maximum population (in millions) for the fourth landmass group (Africa)
+# $`1`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    0.00    0.00   12.29    4.50  231.00 
+# 
+# $`2`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    1.00    6.00   15.71   15.00  119.00 
+# 
+# $`3`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    0.00    8.00   13.86   16.00   61.00 
+# 
+# $`4`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   0.000   1.000   5.000   8.788   9.750  56.000 
+# 
+# $`5`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    2.00   10.00   69.18   39.00 1008.00 
+# 
+# $`6`
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    0.00    0.00   11.30    1.25  157.00 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Simmulation:
+R has an r*** function (for "random"), a d*** function (for "density"), a p*** (for "probability"), and q*** (for "quantile")
+
+sample, rbinom, rnorm
+
+All of the standard probability distributions are built into R, including exponential (rexp()), chi-squared (rchisq()), gamma (rgamma())
+```{r}
+sample(1:6, 4, replace = TRUE) #sample 4 numbers between 1 and 6. replacement=TRUE means same number can show up more than once
+sample(LETTERS)
+
+flips <- sample(c(0,1), 100, prob = c(0.3, 0.7), replace=TRUE) #imulate 100 flips of an unfair two-sided coin. This particular coin has a 0.3 probability of landing 'tails' and a 0.7 probability of landing 'heads'.
+sum(flips) #Count the actual number of 1s contained in flips using the sum() function.
+
+flips2 <- rbinom(1, size = 100, prob = 0.7)  # binomial random variable represents the number of 'successes' (heads) in a given number of independent 'trials' (coin flips). Therefore, we can generate a single random variable that represents the number of heads in 100 flips of our unfair coins
+#############
+
+rnorm(10) #will generate 10 random numbers from a standard normal distribution
+rnorm(10, mean=100, sd=25)
+#########
+#simulate 100 *groups* of random numbers, each containing 5 values generated from a Poisson distribution with mean 10
+rpois(5, 10) #Generate 5 random values from a Poisson distribution with mean 10.
+my_pois <- replicate(100, rpois(5, 10)) # to perform this operation 100 times.  replicate() created a matrix, each column of which contains 5 random numbers generated from a Poisson distribution with mean 10. 
+cm <- colMeans(my_pois) # find the mean of each column in my_pois
+hist(cm)
+```
+
+Times and Dates:
+Dates are represented by the 'Date' class and times are represented by the 'POSIXct' and 'POSIXlt' classes.Internally, dates are stored as the number of days since
+1970-01-01 and times are stored as either the number of seconds since 1970-01-01 (for 'POSIXct') or a list of seconds, minutes, hours, etc. (for 'POSIXlt').
+
+Often, the dates and times in a dataset will be in a format that R does not recognize. The strptime() converts character vectors to POSIXlt. In that sense, it is similar to as.POSIXlt(), except that the input doesn't have to be in a particular format (YYYY-MM-DD).
+check lubridate package by Hadley Wickham
+```{r}
+d1 <- Sys.Date() #current date
+class(d1) # Date
+unclass(d1) #18931 days, to see what d1 looks like internally
+d2 <- as.Date("1969-01-01")  #date prior to 1970-01-01
+t1 <-Sys.time() #You can access the current date and time using the Sys.time()
+t2 <- as.POSIXlt(Sys.time())   #coerce the result to POSIXlt with as.POSIXlt(Sys.time())
+str(unclass(t2)) # learn more about this function
+t2$min  # we want just the minutes from the time stored in t2
+#weekdays(), | months(), and quarters()
+
+
+####  convert text to time in R ##########
+t3 <-"October 17, 1986 08:24"
+t4 <- strptime(t3, "%B %d, %Y %H:%M") #help R convert our date/time object to a format that it understands
+Sys.time() -t1  # how much time has passe since t1 was created
+difftime(Sys.time(), t1, units = 'days') # How many days since t1
+
+```
+
+plots:
+dim(), names(), head(), tail() and summary()
+When looking at a single variable, histograms are a useful tool. hist() is the associated R function. Like plot(), hist() is best used by just passing in a single vector
+```{r}
+data(mtcars)
+hist(mtcars$mpg)
+boxplot(formula = mpg ~ cyl, data = mtcars)
+```
