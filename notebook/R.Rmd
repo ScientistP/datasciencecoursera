@@ -492,7 +492,7 @@ vect[c("foo", "bar")] #want the element named "bar"
 --
 Control Structures: Executing Loop
 if, else; for: for a fixed number of times, while:  while a condition applies, repeat: an infinite loop, break: the loop; next: skip an interaction; return: exit
-There is also apply functions
+There is also apply functions.
 
 IF
 ```{r}
