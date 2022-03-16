@@ -1,0 +1,78 @@
+---
+title: "Quiz 1, Wk1"
+author: "P N H"
+date: "3/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Quiz 1
+
+```{r}
+getwd()
+quiz_data_frame <- read.csv("../data/hw1_data.csv")
+q <-read.csv("../data/hw1_data.csv")
+dim(quiz_data_frame)
+tail(quiz_data_frame)
+quiz_data_frame[152:153,]
+quiz_data_frame$Ozone[47]
+quiz_data_frame$Ozone
+
+bad <- is.na(quiz_data_frame)
+head(quiz_data_frame[!bad])
+head(bad)
+sum(bad)
+sum(is.na (quiz_data_frame$Ozone)) #37
+sum(is.na (quiz_data_frame))  #44
+sum(bad) #44
+sum(bad$Ozone) #$ operator is invalid for atomic vectors
+sum(bad[,1]) #37
+mean(quiz_data_frame$Ozone)  #NA
+ave(quiz_data_frame$Ozone)  #l53 of NAs
+summary(quiz_data_frame)
+
+
+#Extract the subset of rows of the data frame where Ozone values are above 31 and Temp values are above 90. What is the mean of Solar.R in this subset
+
+sub <- subset(q, Ozone > 31 & Temp >90)
+summary(sub)
+
+sub2 <- subset(q, Month ==6)
+summary(sub2)
+
+sub2 <- subset(q, Month ==5)
+summary(sub2)
+
+
+
+q[1,]
+
+q[,1] #same as  q[,1], same as q$Ozone, same as q[,1] 
+q[[1]] #same as  q[,1], same as q$Ozone, same as q[,1] 
+q$Ozone #same as  q[,1], same as q$Ozone, same as q[,1] 
+
+
+#same
+q[,1] > 2 # TRUE FALSEs
+q[[1]]>2
+q$Ozone >2 
+
+q>120  # TRUE FALSE
+q[q>120]  #NA and numbers
+
+
+q[q$Ozone>2] # undefined columns selected !!
+
+subset <- q[(q$Ozone>31) & (q$Temp>90)] #Error in `[.data.frame`(q, (q$Ozone > 31) & (q$Temp > 90)) : undefined columns selected
+
+
+
+
+ 
+q[u]
+```
