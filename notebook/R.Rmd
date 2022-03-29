@@ -71,11 +71,31 @@ library(grid)#library to change the grid captions and titles
 
 ```
 Week 1
-Atomic classes: numeric, logical, character, integer, complex
+
+R data types: 1) Atomic vectors, 2) Matrix, 3) Arrays 4) Lists 5)Data Frames
+
+
+1) Atomic Vectors: a)numeric, b)logical, c)character, d)integer, e)complex, f)double g)raw
+
+There is no "Data" or "Values" class in R and you won't find that distinction in the R Manuals. 
+RStudio has chosen for reasons of its own to segregate dataframes from other objects such as lists without the "data.frame" class. it appears as though 'Values' in RStudio are atomic objects with less than 2 dimensions.
+dat <- data.frame(a=1:10, b=letters[1:10]) *This goes in the Data section*
+dat <- unclass(dat) *this would move it to the Values section*
+
+
+**NAMING**
+https://github.com/ktaranov/naming-convention/blob/master/R%20style%20guide%20and%20name%20convention.md
+
+File Name  predict_ad_rev.R
+Function Name  CalculateAvgTemp
+Variable Name  AvgClick
+Data Frame     AvgClick  or df_AvgClick
+Factor Variable Name  f_AvgClick
+
 ```{r}
 y <- vector ("numeric", length=3) #[1] 0 0 0
 x <- 0:6
-class(x) b#integer
+class(x) #integer
 as.numeric(x) # coerce it explicitly
 as.logical(x) # FALSE TRUE TRUE TRUE ...
 
@@ -95,11 +115,27 @@ Missing Values
 ```{r}
 #1 matrix
 m <- matrix (1:6, nrow=2, ncol=3) #method 1
+colnames(m) <-c ("a","b","c")
+n <-matrix(2:7,nrow=2, ncol=3)
+colnames(n) <- c("d","e","f")
 m<-1:6 #method 2
 dim(m) <-c(2, 3)
+
 x <- 1:3 #method 3
-y <- 10:12
-cbind (x,y) 
+a <- 5:3
+y <- c(1,5,2)
+z <- c(1,1,1)
+
+c <-cbind (x,y) 
+r <-rbind(x,y)
+
+w <-as.data.frame(cbind(x,z))
+b <--as.data.frame(cbind(a,y))
+
+data<-data.frame(col1=c(1:10),col2=c(20:11),
+                col3=c(21:30),col4=c(1:10))
+
+cor(data$col1,data$col2)
 
 #2 Factors 
 #a special type of vector to represent categorical data: ordered or non-ordered
@@ -108,7 +144,7 @@ cbind (x,y)
 x <- factor(c("yes", "yes", "no", "yes", "yes"))
 levels(x) # "yes" and "no" so two levels
 table(x) #  no yes 
-          # 1   4 
+# 1   4 
 # Unclass will kind of bring it down to an integer vector, and you can see that underlying. The factors represent as 22121 so, yes, it's coded as two and no, it's coded as one
 unclass(x) # 2  2 1 2 2; attr(,"levels"); [1] "no"  "yes
 
@@ -119,8 +155,10 @@ x <- factor(c("yes", "yes", "no", "yes", "yes"),
 #3 Missing Values
 x <- c(1,2,NA, 10, 3)
 is.na(x) # missing character, integer, numeric, NAN and etc.
-x <- c(1,2,NaN, NA, 3)
-is.nan(x)
+sum(is.na(x))
+y <- c(1,2,NaN, NaN, 3)
+is.nan(y)
+sum(is.nan(y))
 
 # 4 Lists
 x <- list (1, "a", TRUE, 1+4i)
@@ -331,7 +369,7 @@ seq_along(10) #	take the length from the length of this argument.
 
 my_seq <- seq(5, 10, length=30) # sequence of 30 numbers between 5 and 10
 length(my_seq) #To confirm that my_seq has length 30
- 1: length(my_seq) #create a new vector (1, 2, 3, ...) that is the same length as my_seq, First method
+1: length(my_seq) #create a new vector (1, 2, 3, ...) that is the same length as my_seq, First method
 seq(along.with = my_seq) # second method
 seq_along(my_seq) #third method
 rep(0, times = 40) #creating a vector that contains 40 zeros. rep means 'replicate'
@@ -435,7 +473,6 @@ vect[c("foo", "bar")] #specify a vector of names
 
 
 
-#Swil Lesson 7
 Matrices and Data Frame
 'rectangular' data types
 1)Matrix
@@ -449,12 +486,30 @@ dim(my_vector) #Null, my_vector is a vector, it doesn't have a `dim` attribute (
 dim(my_vector) <- c(4, 5) #define an attribute to my_vector
 attributes(my_vector)#to see dim
 
+#Make a dataframe method 1
 my_matrix2 <- matrix(1:20, nrow=4, ncol=5)
 patients <- c("Bill", "Gina", "Kelly", "Sean")
-cbind(patients, my_matrix) #'combine columns.  R was forced to 'coerce' the numbers to characters, hence the double quotes. so numbers are just charactors now :(
-my_data <- data.frame(patients, my_matrix) #include the names of our patients in the table without destroying the integrity of our numeric data
+cbind(patients, my_matrix2) #'combine columns.  R was forced to 'coerce' the numbers to characters, hence the double quotes. so numbers are just charactors now :(
+
+
+a<- data.frame(matrix(NA, nrow = 2, ncol = 3)) #method 2
+a<- data.frame(matrix(1:6, nrow = 2, ncol = 3))
+b<- data.frame(matrix(2:7, nrow = 2, ncol = 3))
+
+m <- data.frame( age=1:3, h=2, g=3)  #method 3
+n <-data.frame(2:4,20, 30)
+colnames(n) <- c("d","e","f")
+
+my_data <- data.frame(patients, my_matrix) # method 4, include the names of our patients in the table without destroying the integrity of our numeric data
 cnames <- c("patient", "age", "weight", "bp", "rating", "test") #create a character vector called cnames that contains the following values (in order) -- "patient", "age", "weight", "bp", "rating", "test".
 colnames(my_data) <- cnames #set the `colnames` attribute for our data frame
+
+#make a dataframe method 2
+df <- data.frame(patients = c("Jon", "Bill", "Maria", "Ben", "Tina"),
+                 Age = c(23, 41, 32, 58, 26) )
+df <- data.frame(patients = c("Jon", "Bill", "Maria", "Ben", "Tina"),
+                 age = 1:5)
+
 ```
 Subsetting Vectors 
 ```{r}
@@ -537,10 +592,10 @@ for(letter in x){
 
 x<- matrix (1:6, 2,3)
 
-for (i in seq_len(nrow(x))){
-  for (j in seq_len(ncol(x))) {
+for (i in seq_len(nrow(x))){ # look into each row
+  for (j in seq_len(ncol(x))) { # in that row look at different columns
     print(x[i,j])
-      }
+  }
 }
 
 ```
@@ -654,9 +709,39 @@ all(ints > 0) #to see if all of the elements of ints are greater than zero.
 
 
 FUNCTIONS
-Inputs to functions are often called arguments. The last R expression to be evaluated in a function will become the return value of that function.
-If you want to see the source code for any function, just type the function name without any arguments or parentheses.
-args(remainder).
+Inputs to functions are often called arguments. The last R expression to be evaluated in a function will become the return value of that function.If you want to see the source code for any function, just type the function name without any arguments or parentheses.
+args(remainder).Write functions in a separate text file. Class of functions is FUNCTION. Functions are First class OBJECTS.You can have nested functions, too. 
+Formals argument: are directly given inside function(<arguments>). Function arguments may be *missing* or having *default* values. y~x formula, 1:100 is subset
+some_function(x=mydata, n=10, na.rm=FALSE, y~x,1:100 )
+
+**Matching** by position or matching by name, or partially.
+partially: if the argument has a very long name, and the partial name is unique
+
+
+... argument
+
+*Scoping Rules*
+Scoping is the mechanism within R that determines how R finds symbols (e.g. x)to its value (e.g. 10). The scoping rules determine how a value is bound to a free variable in a function. In a function there's two types of variables. 1) function arguments that are passed through the definition of the function, 2) there may be other variables or other symbols that are found in the function that are not function arguments. *R uses what's called lexical scoping or static scoping*.Related to the scoping rules is how R uses the search list to bind a value to a symbol. And, and one thing that's nice about lexical scoping is that it turns out to be particularly useful for simplifying things like specifically statistical calculations.
+
+*Lexical Scoping* Scoping rules determine how do you assign a value to the free variable, z? 
+f<- function(x,y){
+x^2+y/z  #z is free variable. Not formal arg and not local variable
+}
+
+*Lexical scoping means:* that the values of free variables are searched for in th environment that they were defined. Lexical scoping looks up symbol values based on how functions were nested when they were created, not how they are nested when they are called. 
+
+search() #searches the global environment , then parent environment, then the name spaces of each package, then empty environments for a name symbol. The order of loading packages is important and the user can decide which packages get loaded on start up. Also choosing  library load will makes the package the priority. 
+
+
+Environment is a collection of symbols and values (i.e. x=3.14). Environment has a parent and can have multiple children. 
+
+closure= function + environment
+
+Lexical Scoping: memory storage is a problem. but it is nice to work with optimizing and objective. No need to carry long arguments.
+
+BUT in here it says *"R supports lexical scoping and dynamic scoping."* https://github.com/lgreski/datasciencectacontent/blob/master/markdown/rprog-breakingDownMakeVector.md
+Dynamic scoping is primarily used within functions to save typing during interactive analysis.
+For more infor on Lexial scoping visit: http://adv-r.had.co.nz/Functions.html
 
 
 Most of the time I want to use increment function to increase the value of a number by one. This function will take two arguments: "number" and "by" where "number" is the digit I want to increment and "by" is the amount I want to increment "number" by. I've written the function below. 
@@ -670,7 +755,10 @@ value of 1. I can now use the increment function without providing a value for "
 increment(5) will evaluate to 6. However if I want to provide a value for the "by" argument I still can! The
 expression: increment(5, 2) will evaluate to 7. 
 ```{r}
-
+increment <- function(number, by = 1){
+number + by
+}
+####################################################
 mean(c(2, 4, 5)) #c(2, 4, 5) are the arguments
 args(mean) #shows arguments to the function mean
 
@@ -690,7 +778,7 @@ increment <- function(number, by = 1){
   number + by
 }
 
-increment(1,3) #4
+increment(number=1,3) #4
 increment(5) # 6
 
 
@@ -709,11 +797,12 @@ evaluate <- function(func, dat){
   func(dat)
 }
 evaluate(func=sd, dat=c(1.4, 3.6, 7.9, 8.8) )
+evaluate(sum, c(2, 4, 6)) #12
 
 ########## anonymous functions  #########################
-#pass a function as an argument without first defining the passed function 
+#now you can use the above made up evaluate function to pass a second function as an argument without first defining the passed function 
 #use already existing evaluate function: examples
-evaluate(function(x){x+1}, 6) #7  
+evaluate(func=function(x){x+1}, dat=6) #7 first arg is an anon func: takes one argument `x` and returns `x+1
 evaluate(function(x){x[1]}, dat=c(8, 4, 0))  # return the first element of the vector c(8, 4, 0)
 evaluate(function(x){x[length(x)]}, dat=c(8, 4, 0)) #return the last element of the vector c(8, 4, 0)
 
@@ -723,8 +812,7 @@ PASTE
 paste converts its arguments (via as.character) to character strings, and concatenates them (separating them by the string given by sep. If the arguments are vectors, they are concatenated term-by-term to give a character vector result. Vector arguments are recycled as needed, with zero-length arguments being recycled to "" only if recycle0 is not true or collapse is not NULL.
 
 argument of paste() is `...` which is referred to as an ellipsis:  allows an indefinite number of arguments to be passed into a function.
-The ellipses can be used to pass on arguments to other functions that are used within the function you're writing. Usually a function that has the
-ellipses as an argument has the ellipses as the last argument.
+The ellipses can be used to pass on arguments to other functions that are used within the function you're writing. Usually a function that has the ellipses as an argument has the ellipses as the last argument.
 
 binary operators: +, -, *, and / as they take two inputs, an input from the left and an input from the right.
 
@@ -746,36 +834,41 @@ telegram("good morning")
 # add two explicitly named arguments called alpha and beta.
 add_alpha_and_beta <- function(...){
   args <- list(...) #capture the ellipsis in a list()
-  
   #unpack the arguments from the ellipsis, 
   alpha <- args[["alpha"]] #there are two named arguments within args
   beta  <- args[["beta"]]
   alpha + beta 
 }
-add_alpha_and_beta("")
+add_alpha_and_beta()
 
 mad_libs <- function(...){
   # 1 capture the ellipsis inside of a list
   args <- list(...) # capture the ellipsis inside of a list
   
   #2 unpack the arguments from the ellipsis and assign them to variables
-  place <- args[["place"]]
-  adjective <- args[["adjective"]]
-  noun <- args[["noun"]]
+  # place <- args[["place"]]
+  # adjective <- args[["adjective"]]
+  # noun <- args[["noun"]]
+  
+  place <- args[[1]]
+  adjective <- args[[2]]
+  noun <- args[[3]]
   
   # 3 pass those variables to paste()
   paste("News from", place, "today where", adjective, "students took to the streets in protest of the new", noun, "being installed on campus.")
 }
 
+#mad_libs("kitchen", "happy", "King") #run this function # "News from kitchen today where happy students took to the streets in protest of the new King being installed on campus."
 ```
 binary operator
 %[whatever]% 
 ```{r}
 #define a binary operator that multiplied two numbers and then added one to the product
+#Note that this operator can be used as any other operators, and can be called like this: 4+5, 4 %somefunction%5
 "%mult_add_one%" <- function(left, right){ # Notice the quotation marks!
   left * right + 1
 }
-`4 %mult_add_one% 5` #21
+4%mult_add_one%5  # answer is21
 
 
 "%p%" <- function(left, right){ # Remember to add arguments!
@@ -784,6 +877,12 @@ binary operator
 
 "Good"%p%"job" # will evaluate to: "Good job!
 "I"%p%"love"%p%"R!" #"I love R!"
+
+"%power_sub_three%" <- function(base, power){ # Notice the quotation marks!
+  base^power + 3
+}
+2%power_sub_three%3 #9
+
 
 ```
 
@@ -964,34 +1063,6 @@ tapply(flags$population, flags$red, summary) #4 miilion is the median population
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Simmulation:
 R has an r*** function (for "random"), a d*** function (for "density"), a p*** (for "probability"), and q*** (for "quantile")
 
@@ -1019,18 +1090,38 @@ hist(cm)
 ```
 
 Times and Dates:
-Dates are represented by the 'Date' class and times are represented by the 'POSIXct' and 'POSIXlt' classes.Internally, dates are stored as the number of days since
-1970-01-01 and times are stored as either the number of seconds since 1970-01-01 (for 'POSIXct') or a list of seconds, minutes, hours, etc. (for 'POSIXlt').
+Date use Date class
+Time use the POSIXct and POSIXlt class
+Character strings can be coerced to DAte/Time classes using strptime, as.Date, as.POSIXct, as.POSIXlt
+
+Dates are represented by the 'Date' class and times are represented by the 'POSIXct' and 'POSIXlt' classes.Internally, dates are stored as the number of days since 1970-01-01. 
+
+*times are stored* as either the number of seconds since 1970-01-01 (for 'POSIXct'), stored as very large integers, useful for a dataframe. 
+or a list of seconds, minutes, hours, etc. (for 'POSIXlt'), gives the day of the week, day of the year,
 
 Often, the dates and times in a dataset will be in a format that R does not recognize. The strptime() converts character vectors to POSIXlt. In that sense, it is similar to as.POSIXlt(), except that the input doesn't have to be in a particular format (YYYY-MM-DD).
-check lubridate package by Hadley Wickham
+check lubridate package by Hadley Wickham.
+
+
+
+
 ```{r}
 d1 <- Sys.Date() #current date
 class(d1) # Date
 unclass(d1) #18931 days, to see what d1 looks like internally
 d2 <- as.Date("1969-01-01")  #date prior to 1970-01-01
+unclass(d2) #-365 before 1970-01-01
+weekdays(d2)
+months(d2)
+quarters(d2)
+
 t1 <-Sys.time() #You can access the current date and time using the Sys.time()
 t2 <- as.POSIXlt(Sys.time())   #coerce the result to POSIXlt with as.POSIXlt(Sys.time())
+t3 <- as.POSIXct(t1)
+unclass(t2)
+unclass(t3)
+names(unclass(t2))
+t2$sec
 str(unclass(t2)) # learn more about this function
 t2$min  # we want just the minutes from the time stored in t2
 #weekdays(), | months(), and quarters()
@@ -1038,9 +1129,25 @@ t2$min  # we want just the minutes from the time stored in t2
 
 ####  convert text to time in R ##########
 t3 <-"October 17, 1986 08:24"
-t4 <- strptime(t3, "%B %d, %Y %H:%M") #help R convert our date/time object to a format that it understands
-Sys.time() -t1  # how much time has passe since t1 was created
-difftime(Sys.time(), t1, units = 'days') # How many days since t1
+t5 <-c("October 17, 1986 08:24", "December 9, 2011 9:10")
+t4 <- strptime(t3, "%B %d, %Y %H:%M") #help R convert our date/time object to a format that it understands #converts character vectors to POSIXlt. input doesn't have to be in a particular format (YYYY-MM-DD)
+t6 <- strptime(t5, "%B %d, %Y %H:%M") #help R convert our date/time object to a format that it understands
+class(t6)
+str(unclass(t6)) #to have a more compact view.
+t6$min
+
+
+
+x<-as.Date("1986-01-01")
+Sys.time() -t1  # how much time has passe since t1 was created. class POSIXct
+as.POSIXlt(Sys.time()) #coerce the result to POSIXlt
+t1-x #Incompatible methods ("-.POSIXt", "-.Date") for "-". Can't MIX different classes.
+x<-as.POSIXlt(x) # fix it by this
+t1-x
+difftime(Sys.time(), t1, units = 'days') # How many days since t1? You can sepecify units
+t7 <- as.POSIXct("1986-01-01 01:00:00", tz="GMT")
+t8 <- as.POSIXct("1986-01-01 06:00:00")
+t8-t7 #the advantages of using the date time classes is that it will automatically take care of these kinds of irregularities
 
 ```
 
