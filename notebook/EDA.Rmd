@@ -1,0 +1,78 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Principlace of EDA: Quick and dirty
+first to show some comparison, 
+the second was to show a mechanism, 
+Third
+
+We DON'T use exploratory graphs to communicate results.
+
+ one-dimensional graphs that summarize data. 
+ Two dimensional graphs include scatterplots
+ Some graphs have more than two-dimensions. These include overlayed or multiple two-dimensional plots and spinning plots.
+```{r}
+head(pollution)
+#        pm25  fips region longitude latitude
+# 1  9.771185 01003   east -87.74826 30.59278
+# 2  9.993817 01027   east -85.84286 33.26581
+# 3 10.688618 01033   east -87.72596 34.73148
+# 4 11.337424 01049   east -85.79892 34.45913
+# 5 12.119764 01055   east -86.03212 34.01860
+# 6 10.827805 01069   east -85.35039 31.18973
+
+names(pollution)# gives col names
+summary(pollution)
+summary(pollution$pm25) # summary of one variable only
+ppm # To save you a lot of typing we've saved off pollution$pm25 in this variable
+quantile(ppm) #quantile gives the quartiles
+
+boxplot(ppm, col="blue") # show quartile data that summary and quantile did. The lower and upper edges of the blue box respectively show the values of the 25% and 75%, middle hrizontal line=median or 50%. the box height is the difference between the 75th and 25th quantiles.
+abline(h = 12) #OVERLAY ABILITY: adds a horizontal line to the plot. 12 is the EPA standard for air quality
+
+hist(ppm, col="green") #gives the most frequent pollution counts
+rug(ppm) #how many data points are in each bucket and where they lie through densityo f tick marks
+hist(ppm, col="green", breaks =100) #the number of buckets to split the data into
+abline(v=12, lwd=2) #adds a vertical line at 12 and width 2. not very visiable
+abline(v=median(ppm), col="magenta", lwd=4) # run the hist() . then vertical line at med, and pink coour
+
+
+reg <- table(pollution$region) #more pollution in the east
+# east west 
+#  442  134 
+barplot(reg, col="wheat", main="Number of Counties in Each Region")
+
+boxplot(pollution$pm25~pollution$region, col="red")
+boxplot(pm25~region, data=pollution, col="red") #same as
+
+#multiple plots:
+par(mfrow=c(2,1),mar=c(4,4,2,1)) #set up the plot window for two rows and one column, margins
+east <- subset(pollution,region=="east")  #"returns subsets of vectors, matrices or data frames which meet conditions", only looks for boolean of region= east.
+
+#        pm25  fips region longitude latitude
+# 1  9.771185 01003   east -87.74826 30.59278
+# 2  9.993817 01027   east -85.84286 33.26581
+west <- subset(pollution,region=="west")
+
+hist(east$pm25, col = "green") #The command par told R we were going to have one column with 2 rows, so it placed this histogram in the top position
+hist(subset(pollution,region=="west")$pm25, col = "green") #same as, but labels are different
+ 
+#scatter plot
+with(pollution, plot(latitude, pm25)) #aregments of atitude, pm2 are in pollution dataframe
+abline(h=12, lwd=2, lty=2)  #adds line, width and type
+plot(pollution$latitude, ppm, col = pollution$region) #distinguish between counties in the east and those in the west. the high (greater than 50) and low (less than 25) latitudes are both red (west)
+abline(h=12, lwd=2, lty=2)
+#two scatter plots
+par(mfrow = c(1, 2), mar = c(5, 4, 2, 1))
+plot(west$latitude,west$pm25, main="West" ) #First Plot
+plot(east$latitude,east$pm25, main="East" )
+```
+3. Graphics Devices in R 
+```{r}
+windows() #call screen device
+```

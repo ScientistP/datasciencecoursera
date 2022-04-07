@@ -1,0 +1,134 @@
+---
+title: "R-Week3-Assesment"
+author: "P N H"
+date: "04/04/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Week 3: QUIZ
+what is the mean of 'Sepal.Length' for the species virginica? 
+Levels: setosa versicolor virginica
+```{r}
+library(datasets)
+data(iris)
+v<- subset(iris, Species=="virginica" )
+round(mean(v$Sepal.Length)) # this should give the answer. I couldn't use any apply functions
+
+species<- as.data.frame(iris$Species)
+
+table(iris$Species)
+lapply(species, function(x) x[2])
+
+vapply(iris$Species)
+```
+picks out the twos
+```{r}
+ch <- function(x){
+  use <- x ==2
+    x[use]
+}
+```
+
+```{r}
+ch <- function(x){
+  use <- x =="virginica"
+    x[use]
+}
+```
+
+what R code returns a vector of the means of the variables 'Sepal.Length', 'Sepal.Width', 'Petal.Length', and 'Petal.Width'?
+```{r}
+mean(iris$Sepal.Length) #just one coloumn
+a <- mean(iris[,1:4]) #why I am getting NA
+colMeans(iris[, 1:4]) #This is correct
+apply(iris[, 1:4], 2, mean) ##This is correct
+```
+
+
+CARS
+Question 3
+Load the 'mtcars' dataset in R with the following code.
+How can one calculate the average miles per gallon (mpg) by number of cylinders in the car (cyl)? Select all that apply.
+```{r}
+library(datasets)
+data(mtcars)
+x <- tapply(mtcars$mpg, mtcars$cyl, mean)
+sapply(split(mtcars$mpg, mtcars$cyl), mean)
+with(mtcars, tapply(mpg, cyl, mean))
+
+#what is the absolute difference between the average horsepower of 4-cylinder cars and the average horsepower of 8-cylinder cars?
+
+sapply(split(mtcars$hp, mtcars$cyl==4), mean) #82.63636 Not quite 
+x <-sapply(split(mtcars$hp, mtcars$cyl), mean)
+round(abs(x[1]-x[3])) #127
+
+
+```
+
+```{r}
+debug(ls)
+ls() #You will be prompted to specify at which line of the function you would like to suspend execution and enter the browser.
+undebug(ls) # Execution of 'ls' will suspend at the beginning of the function and you will be in the browser.Also type help and press Q
+
+```
+
+
+ASSINGMENT
+
+second programming assignment will require you to write an R function is able to cache potentially time-consuming computations. For example, taking the mean of a numeric vector is typically a fast operation. However, for a very long vector, it may take too long to compute the mean, especially if it has to be computed repeatedly (e.g. in a loop). If the contents of a vector are not changing, it may make sense to cache the value of the mean so that when we need it again, it can be looked up in the cache rather than recomputed. In this Programming Assignment will take advantage of the scoping rules of the R language and how they can be manipulated to preserve state inside of an R object.
+
+In this example we introduce the <<- operator which can be used to assign a value to an object in an environment that is different from the current environment. Below are two functions that are used to create a special object that stores a numeric vector and cache's its mean.
+
+The first function, makeVector creates a special "vector", which is really a list containing a function to
+
+set the value of the vector
+
+get the value of the vector
+
+set the value of the mean
+
+get the value of the mean
+
+```{r}
+makeVector <- function(x = numeric()) {
+        m <- NULL
+        set <- function(y) {
+                x <<- y
+                m <<- NULL
+        }
+        get <- function() x
+        setmean <- function(mean) m <<- mean
+        getmean <- function() m
+        list(set = set, get = get,
+             setmean = setmean,
+             getmean = getmean)
+}
+```
+The following function calculates the mean of the special "vector" created with the above function. However, it first checks to see if the mean has already been calculated. If so, it gets the mean from the cache and skips the computation. Otherwise, it calculates the mean of the data and sets the value of the mean in the cache via the setmean function.
+
+
+```{r}
+cachemean <- function(x, ...) {
+        m <- x$getmean()
+        if(!is.null(m)) {
+                message("getting cached data")
+                return(m)
+        }
+        data <- x$get()
+        m <- mean(data, ...)
+        x$setmean(m)
+        m
+}
+```
+
+Assignment: Caching the Inverse of a Matrix
+
+Matrix inversion is usually a costly computation and there may be some benefit to caching the inverse of a matrix rather than compute it repeatedly (there are also alternatives to matrix inversion that we will not discuss here). Your assignment is to write a pair of functions that cache the inverse of a matrix.
+
+Write the following functions:
+
+makeCacheMatrix: This function creates a special "matrix" object that can cache its inverse.
+

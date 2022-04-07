@@ -491,16 +491,7 @@ my_matrix2 <- matrix(1:20, nrow=4, ncol=5)
 patients <- c("Bill", "Gina", "Kelly", "Sean")
 cbind(patients, my_matrix2) #'combine columns.  R was forced to 'coerce' the numbers to characters, hence the double quotes. so numbers are just charactors now :(
 
-
-a<- data.frame(matrix(NA, nrow = 2, ncol = 3)) #method 2
-a<- data.frame(matrix(1:6, nrow = 2, ncol = 3))
-b<- data.frame(matrix(2:7, nrow = 2, ncol = 3))
-
-m <- data.frame( age=1:3, h=2, g=3)  #method 3
-n <-data.frame(2:4,20, 30)
-colnames(n) <- c("d","e","f")
-
-my_data <- data.frame(patients, my_matrix) # method 4, include the names of our patients in the table without destroying the integrity of our numeric data
+my_data <- data.frame(patients, my_matrix2) # method 4, include the names of our patients in the table without destroying the integrity of our numeric data
 cnames <- c("patient", "age", "weight", "bp", "rating", "test") #create a character vector called cnames that contains the following values (in order) -- "patient", "age", "weight", "bp", "rating", "test".
 colnames(my_data) <- cnames #set the `colnames` attribute for our data frame
 
@@ -509,6 +500,14 @@ df <- data.frame(patients = c("Jon", "Bill", "Maria", "Ben", "Tina"),
                  Age = c(23, 41, 32, 58, 26) )
 df <- data.frame(patients = c("Jon", "Bill", "Maria", "Ben", "Tina"),
                  age = 1:5)
+
+a<- data.frame(matrix(NA, nrow = 2, ncol = 3)) #method 2
+a<- data.frame(matrix(1:6, nrow = 2, ncol = 3))
+b<- data.frame(matrix(2:7, nrow = 2, ncol = 3))
+
+m <- data.frame(age=1:3, h=2, g=3)  #method 3
+n <-data.frame(2:4,20, 30)
+colnames(n) <- c("d","e","f")
 
 ```
 Subsetting Vectors 
@@ -758,6 +757,9 @@ expression: increment(5, 2) will evaluate to 7.
 increment <- function(number, by = 1){
 number + by
 }
+
+increment <- function(number, by = 1) (number + by) #Same as above
+
 ####################################################
 mean(c(2, 4, 5)) #c(2, 4, 5) are the arguments
 args(mean) #shows arguments to the function mean
@@ -886,9 +888,17 @@ binary operator
 
 ```
 
-lapply and sapply 
 
-apply() and sapply(). Both take a list as input, apply a function to each element of the list, then combine and return the result. lapply() always returns a list, whereas sapply() attempts to simplify the resul.See Hadley Wickham's Journal of Statistical Software paper titled 'The Split-Apply-Combine Strategy for Data Analysis'. lapply: list apply
+WEEK 3
+
+The idea behind a loop function is you want to execute a loop over an object or a set of objects in a way that's kind of that does a lot of work in, in a very small amount of space. That way, you don't have to type as much on the command line. 
+
+lapply takes in 1) list 2) Function name 3) arguments
+
+lapply and sapply 
+apply() and sapply(). Both take a list as input, apply a function to each element of the list, then combine and return the result. lapply() always returns a list, whereas sapply() attempts to simplify the result. So if the result is a list with every element of length 1, then a vector is returned. If the result is a list where every elemet is a vector of length 5, then a matrix of 5xn is returned. 
+
+See Hadley Wickham's Journal of Statistical Software paper titled 'The Split-Apply-Combine Strategy for Data Analysis'. lapply: list apply
 
 useful functions;dim(), names(), head(), tail() and summary()
 unique() function returns a vector with all duplicate elements removed
@@ -900,30 +910,133 @@ The lapply() function takes a list as input, applies a function to each element 
 
 lists are most helpful for storing multiple classes of data. 
 Sapply (simplify apply): If the result is a list where every element is of length one, then sapply() returns a vector. If the result is a list where every element is a vector of the same length (> 1), sapply() returns a matrix.If sapply() can't figure things out, then it just returns a list, no different from what lapply() would give you
+
 ```{r}
-#dataset flags is a dataframe. class(flags) just gives us dataframe which is not useful
-# store the column classes in a character vector 
+df <- data.frame(patients = c("Jon", "Bill", "Maria", "Ben", "Tina"),
+                 age = 1:5)
+mean(df) #NA PROBLEM
+lapply(df,mean)  # NA, 3 result is a list
 
-# head(flags)
-#             name landmass zone area population language religion bars stripes colours red green blue gold white black orange mainhue circles crosses saltires quarters
-# 1    Afghanistan        5    1  648         16       10        2    0       3       5   1     1    0    1     1     1      0   green       0       0        0        0
-# 2        Albania        3    1   29          3        6        6    0       0       3   1     0    0    1     0     1      0     red       0       0        0        0
-# 3        Algeria        4    1 2388         20        8        2    2       0       3   1     1    0    0     1     0      0   green       0       0        0        0
-# 4 American-Samoa        6    3    0          0        1        1    0       0       5   1     0    1    1     1     0      1    blue       0       0        0        0
-# 5        Andorra        3    1    0          0        6        0    3       0       3   1     0    1    1     0     0      0    gold       0       0        0        0
-# 6         Angola        4    2 1247          7       10        5    0       2       3   1     0    0    1     0     1      0     red       0       0        0        0
-#   sunstars crescent triangle icon animate text topleft botright
-# 1        1        0        0    1       0    0   black    green
-# 2        1        0        0    0       1    0     red      red
-# 3        1        1        0    0       0    0   green    white
-# 4        0        0        1    1       1    0    blue      red
-# 5        0        0        0    0       0    0    blue      red
-# 6        1        0        0    1       0    0     red    black
 
-class(flags) #data.frame.  What we really need is to call the class() function on each individual column. We can do it manually through a loop or using sapply and lappy functions.
+x<- 1:4
+lapply(x, runif) # runif generates a uniform random variables using a random number generator. So runif 2, it's going to generate a vector of two random variables
+
+lapply(x, runif, min=0, max=10) #random variables limits
+
+x <- list(a=1:4, b=rnorm(10), c=rnorm(20,1), d=rnorm(100,5))
+lapply(x,mean)
+sapply(x,mean) #knit presentation
+
+```
+apply: 
+evaluates a function (often anonymous) in one line 
+str(apply)
+function(x,MARGIN, FUN,...)
+
+x: an array
+MARGIN: integer vector 
+FUN: a function to be applied
+... : other arguments
+
+```{r}
+x <- matrix(rnorm(200),20,10) #20x10 dimension
+apply(x,2, mean) #take the mean of each coloumn: keep 2nd dimension (coloumns) and collapse the 1st dim
+apply(x,1, sum) #calculate the sum of each row
+
+#specialized fast apply functions!
+rowSums= apply(x,1,mean)
+rowMeans =apply(x,1,mean)
+colSums
+colMeans
+
+apply(x,1, quantile, probs=c(0.25,0.75)) # determine the quantiles you want to calculate
+
+a<- array(rnorm(2*2*10), c(2,2,10)) #list of 10 matrix of 2 by 2 dimension ( c= 2,2,10), that takes the random numbers that keep on repeating (rnorm(2*2*10))
+apply(a,c(1,2), mean) # take mean of the 2*2 matrix over the 3rd dimension 
+rowMeans(a, dim=2) # same as above
+
+
+```
+mapply
+multivariaate apply of sorts which applies in parallel over a set of arguments
+```{r}
+list(rep(1,4), rep(2,3), rep(3,2),rep(4,))
+mapply(rep, 1:4, 4:1) #same as above
+
+
+noise <- function(n,mean, sd){
++rnorm(n,mean,sd)
+}
+
+noise(5,1,2) #5 random variable, mean=2, sd=2
+
+
+noise(1:5,1:5,2) # what I want to happen is to have one random normal with mean 1, two random normals with mean 2, three random normals with mean 3, etc, and then five random normals with mean 5. BUT doesn't work properly.Gives a vector of 5
+mapply(noise, 1:5,1:5,2) # Now this works
+list(noise(1,1,2), noise(2,2,2), noise(3,3,2), noise(4,4,2),noise(5,5,2)) #same as above
+
+```
+*tapply: apply a function over a subset of vectors
+there are pieces of this vector that you want to calculate a summary statistic over.the first argument is a  vector of some sort. The second argument is another vector of the same length which identifies which group each element of the numeric vector is in.Forexampel: aybe the first 50 observations are men and the second 50 observations are women.if you want to take the mean of the numeric factor within men or within women, then you can use tapply to do this.
+
+str(tapply)
+function(X, INDEX, FUN=NULL, ..., simplify=TRUE)
+
+X: a vector
+INDEX: factor or a list of factors
+```{r}
+x<- c(rnorm(10),runif(10),rnorm(10,1)) # a vector of normal random variables and uniform random variables and there's ten normals, ten uniforms, then ten normals that have a mean of one. Uniform distributions provide information about the uniform distribution on the interval from min to max. runif 2 generates a vector of two random variables
+
+#So here we have three groups
+
+f <- gl(3,10) #create another factor variable using the gl function with three levels. so three levels and each level is repeated 10 times.
+
+tapply(x,f,mean) #tapply on x. pass it the factor variable f in the mean function, that allows me to take the mean of each group of numbers in, in x.
+tapply(x,f,mean, simplify=FALSE) # gets a list
+
+tapply(x,f, range)
+```
+
+split
+splits a vector or objects into groups determined by a factor or a list of factors
+
+str(split)
+function(x,f,drop=FALSE,...)
+x is a vector or a list
+f is factor or a list of factors
+drop indicates wether empty factors levels should be dropped
+
+it is common to use split with lapply
+```{r}
+x<- c(rnorm(10),runif(10),rnorm(10,1)) # a vector of normal random variables and uniform random variables and there's ten normals, ten uniforms, then ten normals that have a mean of one. Uniform distributions provide information about the uniform distribution on the interval from min to max. runif 2 generates a vector of two random variables
+
+f <- gl(3,10) #create another factor variable using the gl function with three levels. so three levels and each level is repeated 10 times.
+split(x,f)
+lapply(split(x,f), mean)
+tapply(x,f,mean) #same as above
+
+#splitting on more than one factor
+x<- rnorm(10)
+f1 <- gl(2,5) #e.g. gender levels: 2 levels, each level repeats 5 times
+f2 <- gl(5,2) #e.g. race levels
+interaction(f1,f2) #e.g. combination of gender and race
+str(split(x,list(f1,f2))) #here we can see that some interactions create empty levels
+str(split(x,list(f1,f2), drop=TRUE)) #the empty levels are dropped
+```
+
+SWIRL LESSONS
+ http://archive.ics.uci.edu/ml/datasets/Flags
+ flags.csv is saved in ~/dev/datasciencecoursera/data
+ 
+Each of the *apply functions will SPLIT up some data into smaller pieces, APPLY a function to each piece, then
+COMBINE the results. 
+
+```{r}
+flags <- read.csv("~/dev/datasciencecoursera/data/flags.csv")
+class(flags) #data.frame. But What we really need is to call the class() function on each individual column. We can do it manually through a loop or using sapply and lappy functions.
 
 cls_list <- lapply(flags, class) #step 1: every element returned is a character vector of length one (i.e. "integer" and "vector")
-class(cls_list) #list
+class(cls_list) #list, every element of the list is a character vector of length one
 as.character(cls_list) #step 2 
 cls_vect <- sapply(flags, class) #or you can combine steps 1 and 2 by sapply: simplify (hence the 's' in 'sapply')
 
@@ -936,57 +1049,46 @@ sapply(flag_colors, mean) #find the proportion of flags (out of 194) containing 
 
 flag_shapes <- flags[, 19:23] #number of times a particular shape or design appears on a country's flag
 lapply(flag_shapes,range) #minimum and maximum number of times each shape or design appears.LIST: 
-# $circles
-# [1] 0 4
-# 
-# $crosses
-# [1] 0 2 #and etc...
+
 shape_mat <- sapply(flag_shapes,range) # INSTEAD the following
-#      circles crosses saltires quarters sunstars
-# [1,]       0       0        0        0        0
-# [2,]       4       2        1        4       50
 
 class(shape_mat) #it is a matrix class. this returns "matrix" "array" 
 
-#an example where sapply() can't figure out how to simplify the result and thus returns a list, no different from lapply()
+```
+
+n example where sapply() can't figure out how to simplify the result and thus returns a list, no different from lapply()
+
+```{r}
 unique_vals <- lapply(flags, unique) # the number of unique values for each variable in the flags dataset. It is a list. Sapply does the same thing. The fact that the elements of the unique_vals list are all vectors of *different* length poses a problem for sapply(), since there's no obvious way of simplifying the result.
 
-# $name
-#   [1] "Afghanistan"              "Albania"                  "Algeria"                  "American-Samoa"           "Andorra"                  "Angola"                  
-#   [7] "Anguilla"                 "Antigua-Barbuda"          "Argentina"                "Argentine"                "Australia"                "Austria and etc"
 
-# $landmass
-# [1] 5 3 4 6 1 2
-
-sapply(unique_vals, length)  # BUT Since unique_vals is a list, you can determine the length of each element of unique_vals (i.e. the number of unique values for each variable). and apply length to each element using sapply
-# name   landmass       zone       area population   language   religion       bars    stripes    colours        red      green       blue       gold      white 
-#        194          6          4        136         48         10          8          5         12          8          2          2          2          2          2 
+sapply(unique_vals, length)  # the elements of the unique_vals list are all vectors of *different* length 
+sapply(flags, unique) #this poses a problem for sapply() and it will be the same as lapply. 
+lapply(unique_vals, function(elem) elem[2]) #you are interested in only the second item from each element of the unique_vals. elem is an 'anonymous functions'. Function takes one argument, elem, which is just a 'dummy variable' that takes on the value of each element of unique_vals, in turn.see below.
 
 ```
 
 
 apply a function that is not yet defined
+
+'anonymous functions'
+lapply and the associated functions make heavy use of what, of what are called anonymous functions. Anonymous functions are functions that don't have names, so you don't assign them a name of some sort but you can kind of generate them on the fly. 
+
+we are interested in only the second item from each element of the unique_vals list.
+Since each element of the unique_vals list is a vector and we're not aware of any built-in function in R that returns the second element of a vector, we will construct our own function.
+
 ```{r}
+x <- list (a=matrix(1:4, 2,2), b=matrix(1:6,3,2))
+lapply(x, function(elt) elt[,1]) # used a made up function and names it elt which selects the first coloumn of each list. the function is not stored
 
-#'anonymous functions' 
-#we are interested in only the second item from each element of the unique_vals list. 
-#Since each element of the unique_vals list is a vector and we're not aware of any built-in function in R that returns the second element of a vector, we will construct our own function.
-lapply(unique_vals, function(elem) elem[2]) #a list containing the second item from each element of the unique_vals list. Function takes one argument, elem, which is just a 'dummy variable' that takes on the value of each element of unique_vals, in turn.
-# $name
-# [1] "Albania"
-# 
-# $landmass
-# [1] 3
-# 
-# $zone
-# [1] 3
-
+lapply(unique_vals, function(elem) elem[2]) #you are interested in only the second item from each element of the unique_vals. elem is an 'anonymous functions'. Function takes one argument, elem, which is just a 'dummy variable' that takes on the value of each element of unique_vals, in turn.see below.
 ```
 
 vapply() and tapply(), each of which serves a very specific purpose within the Split-Apply-Combine methodology
 
 vapply() 
-1) as a safer alternative to sapply(), which is most helpful when writing your own functions. 
+1) as a safer alternative to sapply(), which is most helpful when writing your own functions.This is because sapply() tries to 'guess' the correct format of the result, vapply() allows you to specify it explicitly. If
+the result doesn't match the format you specify, vapply() will throw an error, causing the operation to stop.  vapply() may perform faster than sapply() for large datasets. However, when doing data analysis interactively (at the prompt), sapply() saves you some typing and will often be good enough.
 2) Also can be used to split your data into groups based on the value of some variable, then apply a function to each group.
 
 The unique() function returns a vector of the unique values contained in the object passed to it.
@@ -997,66 +1099,24 @@ from sapply(). However, when doing data analysis interactively (at the prompt), 
 tapply(): split your data up into groups based on the value of some variable, then apply a function to the members of each group.
 
 ```{r}
+vapply(flags, unique, numeric(1)) #says that you expect each element of the result to be a numeric vector of length 1. Since this is NOT actually the case, YOU WILL GET AN ERROR.
 sapply(flags, unique) # return a list containing one vector of unique values for each column of the flags dataset
-vapply(flags, unique, numeric(1)) #says that you expect each element of the result to be a numeric vector of length 1. Since this is NOT actually the case, YOU get error.
+vapply(flags, class, numeric(1)) #says that you expect each element of the result to be a numeric vector of length 1. Since this is NOT actually the case, YOU get error.
 sapply(flags, class)
-#    name    landmass        zone        area  population    language    religion        bars     stripes     colours         red       green        blue        gold 
-# "character"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer" 
-#       white       black      orange     mainhue     circles     crosses    saltires    quarters    sunstars    crescent    triangle        icon     animate        text 
-#   "integer"   "integer"   "integer" "character"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer"   "integer" 
-#     topleft    botright 
-# "character" "character" 
+
 
 vapply(flags, class, character(1)) # The 'character(1)' argument tells R that we expect the class function to return a character vector of length 1 when applied to EACH column of the flags dataset. We get the same result as above.
 
 table(flags$landmass) #how many flags/countries fall into each group from 1 to 6.
-#  1  2  3  4  5  6 
-# 31 17 35 52 39 20 
+
 
 table(flags$animate) #39 flags contain an animate object (animate = 1) and 155 do not (animate = 0)
-#   0   1 
-# 155  39 
 
-tapply(flags$animate, flags$landmass, mean) #to apply the mean function to the 'animate' variable separately for each of the six landmass groups, thus giving us the proportion of flags containing an animate image WITHIN each landmass group. (landmass = 1) corresponds to North America and contains the highest proportion of flags with an animate image (0.4194).
-
-#         1         2         3         4         5         6 
-# 0.4193548 0.1764706 0.1142857 0.1346154 0.1538462 0.3000000 
+#TAPPLY SPLITS
+tapply(flags$animate, flags$landmass, mean) # mean of animate for each landmass. to apply the mean function to the 'animate' variable separately for each of the six landmass groups, thus giving us the proportion of flags containing an animate image WITHIN each landmass group. (landmass = 1) corresponds to North America and contains the highest proportion of flags with an animate image (0.4194).
 
 
-tapply(flags$population, flags$red, summary) #4 miilion is the median population (in millions) for countries *without* the color red on their flag
-# $`0`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    0.00    3.00   27.63    9.00  684.00 
-# 
-# $`1`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#     0.0     0.0     4.04    22.1    15.0  1008.0 
-
-
-#summary of population values for each of the six landmasses.56 million is maximum population (in millions) for the fourth landmass group (Africa)
-# $`1`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    0.00    0.00   12.29    4.50  231.00 
-# 
-# $`2`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    1.00    6.00   15.71   15.00  119.00 
-# 
-# $`3`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    0.00    8.00   13.86   16.00   61.00 
-# 
-# $`4`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#   0.000   1.000   5.000   8.788   9.750  56.000 
-# 
-# $`5`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    2.00   10.00   69.18   39.00 1008.00 
-# 
-# $`6`
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#    0.00    0.00    0.00   11.30    1.25  157.00 
+tapply(flags$population, flags$red, summary) #4 million is the median population (in millions) for countries *without* the color red on their flag
 
 ```
 
@@ -1150,6 +1210,9 @@ t8 <- as.POSIXct("1986-01-01 06:00:00")
 t8-t7 #the advantages of using the date time classes is that it will automatically take care of these kinds of irregularities
 
 ```
+
+
+
 
 plots:
 dim(), names(), head(), tail() and summary()
